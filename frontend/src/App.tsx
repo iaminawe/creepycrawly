@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CrawlConfigForm } from "@/components/CrawlConfigForm"
 import { CrawlStatus } from "@/components/CrawlStatus"
 import { RecentContent } from "@/components/RecentContent"
+import { Link } from 'react-router-dom';
 
 interface FormValues {
   url: string
@@ -17,7 +18,7 @@ export default function App() {
   const handleStartCrawl = async (values: FormValues) => {
     setIsRunning(true)
     setCurrentUrl(values.url)
-    
+
     try {
       // The actual API call is handled in the CrawlConfigForm component
       // This function just updates the UI state
@@ -40,6 +41,14 @@ export default function App() {
             </div>
           )}
         </div>
+
+        <nav>
+          <ul className="flex space-x-4">
+            <li><Link to="/">Home</Link></li>
+            <li><Link to="/status">Status</Link></li>
+            <li><Link to="/content">Content</Link></li>
+          </ul>
+        </nav>
 
         <div className="grid gap-8 md:grid-cols-2">
           <Card>
