@@ -1,67 +1,65 @@
+"use client"
+import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+// import dynamic from 'next/dynamic'
+// import lightTheme from '@uiw/react-json-view/light'
+// import darkTheme from '@uiw/react-json-view/dark'
 
-interface ProcessedItem {
-  url: string
-  timestamp: string
-  documents: string[]
-  status: 'success' | 'error'
-}
+// const ReactJson = dynamic(() => import('@uiw/react-json-view'), { ssr: false })
 
 export function RecentContent() {
-  // In a real app, this would be managed by state management like Redux
-  // and populated from the API responses
-  const recentItems: ProcessedItem[] = []
+  const [content, setContent] = useState([]);
+  const [metrics, setMetrics] = useState({ status: "idle" });
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      const response = await fetch("http://localhost:8000/api/crawler/recent");
+      if (response.ok) {
+        const data = await response.json();
+        setContent(data.content);
+      }
+    };
+
+    const interval = setInterval(fetchContent, 5000); // Fetch status every 5 seconds
+    fetchContent(); // Initial fetch
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8000/api/crawler/ws/logs')
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      setMetrics(data)
+    }
+
+    return () => ws.close()
+  }, []);
 
   return (
-    <ScrollArea className="h-[300px] w-full rounded-md border">
-      <div className="p-4">
-        {recentItems.length === 0 ? (
-          <div className="text-center text-sm text-muted-foreground">
-            No content processed yet
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Recent Content</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-screen">
+          <div className="space-y-2">
+            {/* <ReactJson
+              value={content}
+              style={{ ...lightTheme, padding: '1rem' }}
+              displayDataTypes={false}
+              collapsed={2}
+            /> */}
+            <pre>{JSON.stringify(content, null, 2)}</pre>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {recentItems.map((item, index) => (
-              <div
-                key={index}
-                className="rounded-lg border p-4 space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className={item.status === 'success' ? "text-green-500" : "text-red-500"}>
-                      {item.status === 'success' ? "✅" : "❌"}
-                    </span>
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium hover:underline break-all"
-                    >
-                      {item.url}
-                    </a>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(item.timestamp).toLocaleString()}
-                  </span>
-                </div>
-
-                {item.documents.length > 0 && (
-                  <div className="pl-6 space-y-1">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Processed Documents:
-                    </span>
-                    {item.documents.map((doc, docIndex) => (
-                      <div key={docIndex} className="text-xs pl-2">
-                        • {doc}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </ScrollArea>
+        </ScrollArea>
+        <div>
+          <h3>Crawl Metrics</h3>
+          <pre>{JSON.stringify(metrics, null, 2)}</pre>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

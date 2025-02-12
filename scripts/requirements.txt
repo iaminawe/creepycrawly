@@ -1,5 +1,5 @@
 # Core Dependencies
-crawl4ai @ git+https://github.com/your-org/crawl4ai.git  # Update with actual repo URL
+crawl4ai @ git+https://github.com/unclecode/crawl4ai.git  # Update with actual repo URL
 
 # AWS
 boto3>=1.26.0
